@@ -5,6 +5,8 @@
       <el-button type="primary" @click="router.push('/spots')">添加景点</el-button>
       <el-button @click="router.push('/planner/' + trip.id + '/1')">编排第 1 天</el-button>
       <el-button @click="router.push('/share')">分享预览</el-button>
+      <el-button type="success" @click="publishShare">{{ publishedSheet ? '重新发布分享单' : '发布分享单' }}</el-button>
+      <span v-if="publishedSheet" class="muted">发布于 {{ formatDateTime(publishedSheet.published_at) }}<template v-if="hasDraftChanges"> · 有未发布改动</template></span>
     </div>
     <section class="grid">
       <BudgetChart :spent="stats.value.budget.spent" :remaining="stats.value.budget.remaining" />
@@ -20,7 +22,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { useTripStore } from '../stores/tripStore';
 import { useSpotStore } from '../stores/spotStore';
 import { useDayPlanStore } from '../stores/dayPlanStore';
+import { useShareStore } from '../stores/shareStore';
 import { useTripStats } from '../hooks/useTripStats';
+import { formatDateTime } from '../utils/formatters';
 import TripHeader from '../components/common/TripHeader.vue';
 import DayTimeline from '../components/common/DayTimeline.vue';
 import BudgetChart from '../components/common/BudgetChart.vue';
@@ -30,8 +34,14 @@ const router = useRouter();
 const tripStore = useTripStore();
 const spotStore = useSpotStore();
 const dayPlanStore = useDayPlanStore();
+const shareStore = useShareStore();
 const trip = computed(() => tripStore.trips.find((item) => item.id === route.params.id));
 const tripDays = computed(() => dayPlanStore.dayPlans.filter((day) => day.trip_id === route.params.id));
+const publishedSheet = computed(() => trip.value ? shareStore.byTripId(trip.value.id) : undefined);
+const hasDraftChanges = computed(() => trip.value ? shareStore.hasUnpublishedChanges(trip.value, dayPlanStore.dayPlans, spotStore.spots) : false);
+function publishShare() {
+  if (trip.value) shareStore.publish(trip.value, dayPlanStore.dayPlans, spotStore.spots);
+}
 const stats = computed(() => trip.value ? useTripStats(trip.value, dayPlanStore.dayPlans, spotStore.spots) : { value: { days: 0, spotCount: 0, budget: { spent: 0, remaining: 0, warning: '' } } });
 </script>
 
