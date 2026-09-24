@@ -15,5 +15,6 @@ export const tripStatusText: Record<TripStatus, string> = {
 };
 export const transportText: Record<string, string> = { walk: '步行', metro: '地铁', taxi: '出租', train: '火车' };
 export const formatDate = (value: string) => dayjs(value).format('YYYY-MM-DD');
+export const formatDateTime = (value: string) => dayjs(value).format('YYYY-MM-DD HH:mm');
 export const formatCurrency = (value: number, currency = 'CNY') => new Intl.NumberFormat('zh-CN', { style: 'currency', currency }).format(value);
 
